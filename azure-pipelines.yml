@@ -10,7 +10,8 @@ pr: none
 jobs:
 - job: TerraformPlan
   displayName: "Terraform Plan"
-  pool: agent-ka-pool
+  pool:
+    name: agent-ka-pool
   steps:
     - task: TerraformInstaller@1
       inputs:
@@ -25,7 +26,7 @@ jobs:
         backendServiceArm: 'servocon'
         backendAzureRmStorageAccountName: 'strgaccyaml'
         backendAzureRmContainerName: 'cntryaml'
-        backendAzureRmKey: 'security.tfstate'
+        backendAzureRmKey: '24.tfstate'
 
     - task: TerraformTask@5
       displayName: 'Terraform Plan'
@@ -35,25 +36,37 @@ jobs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/module'
         environmentServiceNameAzureRM: 'servocon'
 
-- job: SecurityScan
-
-
 
 # # ✅ Job 2: Security Scan on Azure DevOps built-in server pool
 # - job: SecurityScan
 #   displayName: "Run Security Scan"
 #   dependsOn: TerraformPlan
-#   pool: server
+#   pool:
+#     name: server
 #   steps:
 #     - script: echo "Running security scan (replace this with actual scanner like Checkov, TFLint, etc.)"
 #       displayName: "Security Scan"
 
+
 # ✅ Job 3: Terraform Apply on 'agent-pool-apply', only on 'main' branch
+- job: ManualApproval
+  displayName: "Wait for Manual Validation"
+#  dependsOn: [TerraformPlan, SecurityScan]
+  pool:
+    name: server
+  steps:
+    - task: ManualValidation@0
+      inputs:
+        instructions: 'Please review Terraform Plan and Security Scan results. Approve to proceed with Apply.'
+        onTimeout: 'reject'
+        timeout: '1h'
+
 - job: TerraformApply
   displayName: "Terraform Apply"
-  dependsOn: [TerraformPlan, SecurityScan]
+  dependsOn: ManualApproval
   condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-  pool: agent-ka-pool
+  pool:
+    name: agent-ka-pool
   steps:
     - task: TerraformInstaller@1
       inputs:
