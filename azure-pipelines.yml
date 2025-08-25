@@ -35,14 +35,18 @@ jobs:
         workingDirectory: '$(System.DefaultWorkingDirectory)/module'
         environmentServiceNameAzureRM: 'servocon'
 
-# ✅ Job 2: Security Scan on Azure DevOps built-in server pool
 - job: SecurityScan
-  displayName: "Run Security Scan"
-  dependsOn: TerraformPlan
-  pool: server
-  steps:
-    - script: echo "Running security scan (replace this with actual scanner like Checkov, TFLint, etc.)"
-      displayName: "Security Scan"
+
+
+
+# # ✅ Job 2: Security Scan on Azure DevOps built-in server pool
+# - job: SecurityScan
+#   displayName: "Run Security Scan"
+#   dependsOn: TerraformPlan
+#   pool: server
+#   steps:
+#     - script: echo "Running security scan (replace this with actual scanner like Checkov, TFLint, etc.)"
+#       displayName: "Security Scan"
 
 # ✅ Job 3: Terraform Apply on 'agent-pool-apply', only on 'main' branch
 - job: TerraformApply
