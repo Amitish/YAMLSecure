@@ -4,78 +4,57 @@ trigger:
       - main
       - feature/*
 
-pr: none
+#pr: none
 
-# ✅ Job 1: Terraform Plan on 'agent-pool-plan'
 jobs:
-- job: TerraformPlan
-  displayName: "Terraform Plan"
-  pool:
-    name: agent-ka-pool
-  steps:
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: 'latest'
+  # ✅ Job 1: Terraform Init
+  - job: TerraformInit
+    displayName: "Terraform Init"
+    pool:
+      name: agent-ka-pool
+    steps:
+      - task: TerraformInstaller@1
+        displayName: 'Install Terraform'
+        inputs:
+          terraformVersion: 'latest'
 
-    - task: TerraformTask@5
-      displayName: 'Terraform Init'
-      inputs:
-        provider: 'azurerm'
-        command: 'init'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/module'
-        backendServiceArm: 'servocon'
-        backendAzureRmStorageAccountName: 'strgaccyaml'
-        backendAzureRmContainerName: 'cntryaml'
-        backendAzureRmKey: '24.tfstate'
+      - task: TerraformTask@5
+        displayName: 'Terraform Init'
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/module'
+          backendServiceArm: 'servocon'
+          backendAzureRmStorageAccountName: 'strgaccyaml'
+          backendAzureRmContainerName: 'cntryaml'
+          backendAzureRmKey: '24.tfstate'
 
-    - task: TerraformTask@5
-      displayName: 'Terraform Plan'
-      inputs:
-        provider: 'azurerm'
-        command: 'plan'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/module'
-        environmentServiceNameAzureRM: 'servocon'
+  # ✅ Job 2: Terraform Plan (depends on Init)
+  - job: TerraformPlan
+    displayName: "Terraform Plan"
+    dependsOn: TerraformInit
+    pool:
+      name: agent-ka-pool
+    steps:
+      - task: TerraformTask@5
+        displayName: 'Terraform Plan'
+        inputs:
+          provider: 'azurerm'
+          command: 'plan'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/module'
+          environmentServiceNameAzureRM: 'servocon'
 
+  # ✅ Job 3: Manual Approval (depends on Plan)
+  - job: ManualApproval
+    displayName: "Wait for Manual Validation"
+    dependsOn: TerraformPlan
+    pool:
+      name: server
+    steps:
+      - task: ManualValidation@0
+        inputs:
+          instructions: 'Please review Terraform Plan and Security Scan results. Approve to proceed with Apply.'
+          onTimeout: 'reject'
+          timeout: '1h'
 
-# # ✅ Job 2: Security Scan on Azure DevOps built-in server pool
-# - job: SecurityScan
-#   displayName: "Run Security Scan"
-#   dependsOn: TerraformPlan
-#   pool:
-#     name: server
-#   steps:
-#     - script: echo "Running security scan (replace this with actual scanner like Checkov, TFLint, etc.)"
-#       displayName: "Security Scan"
-
-
-# ✅ Job 3: Terraform Apply on 'agent-pool-apply', only on 'main' branch
-- job: ManualApproval
-  displayName: "Wait for Manual Validation"
-#  dependsOn: [TerraformPlan, SecurityScan]
-  pool:
-    name: server
-  steps:
-    - task: ManualValidation@0
-      inputs:
-        instructions: 'Please review Terraform Plan and Security Scan results. Approve to proceed with Apply.'
-        onTimeout: 'reject'
-        timeout: '1h'
-
-- job: TerraformApply
-  displayName: "Terraform Apply"
-  dependsOn: ManualApproval
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-  pool:
-    name: agent-ka-pool
-  steps:
-    - task: TerraformInstaller@1
-      inputs:
-        terraformVersion: 'latest'
-
-    - task: TerraformTask@5
-      displayName: 'Terraform Apply'
-      inputs:
-        provider: 'azurerm'
-        command: 'apply'
-        workingDirectory: '$(System.DefaultWorkingDirectory)/module'
-        environmentServiceNameAzureRM: 'servocon'
+  # ✅ Job 4: Terraf
