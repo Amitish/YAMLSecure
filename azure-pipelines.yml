@@ -57,4 +57,34 @@ jobs:
           onTimeout: 'reject'
           timeout: '1h'
 
-  # ✅ Job 4: Terraf
+  # ✅ Job 4: Terraform Apply (only runs on main branch, depends on approval)
+  - job: TerraformApply
+    displayName: "Terraform Apply"
+    dependsOn: ManualApproval
+    condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    pool:
+      name: agent-ka-pool
+    steps:
+      - task: TerraformInstaller@1
+        displayName: 'Install Terraform'
+        inputs:
+          terraformVersion: 'latest'
+
+      - task: TerraformTask@5
+        displayName: 'Terraform Init (Again in Apply)'
+        inputs:
+          provider: 'azurerm'
+          command: 'init'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/module'
+          backendServiceArm: 'servocon'
+          backendAzureRmStorageAccountName: 'strgaccyaml'
+          backendAzureRmContainerName: 'cntryaml'
+          backendAzureRmKey: '24.tfstate'
+
+      - task: TerraformTask@5
+        displayName: 'Terraform Apply'
+        inputs:
+          provider: 'azurerm'
+          command: 'apply'
+          workingDirectory: '$(System.DefaultWorkingDirectory)/module'
+          environmentServiceNameAzureRM: 'servocon'
