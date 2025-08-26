@@ -4,8 +4,6 @@ trigger:
       - main
       - feature/*
 
-#pr: none
-
 jobs:
   # ✅ Job 1: Terraform Init
   - job: TerraformInit
@@ -19,7 +17,7 @@ jobs:
           terraformVersion: 'latest'
 
       - task: TerraformTask@5
-        displayName: 'Terraform Init (with reconfigure)'
+        displayName: 'Terraform Init'
         inputs:
           provider: 'azurerm'
           command: 'init'
@@ -28,7 +26,6 @@ jobs:
           backendAzureRmStorageAccountName: 'strgaccyaml'
           backendAzureRmContainerName: 'cntryaml'
           backendAzureRmKey: '24.tfstate'
-          commandOptions: '-reconfigure'
 
   # ✅ Job 2: Terraform Plan (depends on Init)
   - job: TerraformPlan
