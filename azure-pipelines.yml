@@ -17,7 +17,7 @@ jobs:
           terraformVersion: 'latest'
 
       - task: TerraformTask@5
-        displayName: 'Terraform Init'
+        displayName: 'Terraform Init (with reconfigure)'
         inputs:
           provider: 'azurerm'
           command: 'init'
@@ -26,6 +26,7 @@ jobs:
           backendAzureRmStorageAccountName: 'strgaccyaml'
           backendAzureRmContainerName: 'cntryaml'
           backendAzureRmKey: 'security.tfstate'
+          commandOptions: '-reconfigure'
 
   # ✅ Job 2: Terraform Plan (depends on Init)
   - job: TerraformPlan
@@ -78,6 +79,7 @@ jobs:
           backendAzureRmStorageAccountName: 'strgaccyaml'
           backendAzureRmContainerName: 'cntryaml'
           backendAzureRmKey: 'security.tfstate'
+          commandOptions: '-reconfigure'
 
       - task: TerraformTask@5
         displayName: 'Terraform Apply'
