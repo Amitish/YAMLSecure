@@ -25,7 +25,7 @@ jobs:
           backendServiceArm: 'servocon'
           backendAzureRmStorageAccountName: 'strgaccyaml'
           backendAzureRmContainerName: 'cntryaml'
-          backendAzureRmKey: '24.tfstate'
+          backendAzureRmKey: 'security.tfstate'
 
   # ✅ Job 2: Terraform Plan (depends on Init)
   - job: TerraformPlan
@@ -77,7 +77,7 @@ jobs:
           backendServiceArm: 'servocon'
           backendAzureRmStorageAccountName: 'strgaccyaml'
           backendAzureRmContainerName: 'cntryaml'
-          backendAzureRmKey: '24.tfstate'
+          backendAzureRmKey: 'security.tfstate'
 
       - task: TerraformTask@5
         displayName: 'Terraform Apply'
